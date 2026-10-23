@@ -1,0 +1,50 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Create Cordova Project & Add Android
+        run: |
+          cordova create myApp com.chalaksathi.app ChalakSathi
+          cd myApp
+          cordova platform add android@12.0.0
+
+      - name: Copy HTML file
+        run: |
+          cp index.html myApp/www/index.html
+
+      - name: Build Debug APK
+        run: |
+          cd myApp
+          cordova build android --debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChalakSathi-APK
+          path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          
